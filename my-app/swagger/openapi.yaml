@@ -1,0 +1,163 @@
+openapi: "3.0.0"
+
+info:
+  title: "Sample API"
+  version: "1.0.0"
+
+paths:
+  "/api":
+    get:
+      summary: "Sample API get operation"
+      description: "Sample API get operation"
+      tags: ["sample"]
+      responses:
+        '200':
+          description: "Success operation"
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Hello world!"
+  "/api/kwargs":
+    get:
+      summary: "Sample kwargs API get operation"
+      description: "Sample kwargs API get operation"
+      tags: ["sample"]
+      responses:
+        '200':
+          description: "Success operation"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Kwargs"
+        "400":
+          $ref: "#/components/responses/400-BadRequest"
+
+
+  "/api/signup/":
+    post:
+      summary: "Create user"
+      tags: ["user"]
+      description: "Create user"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                email:
+                  type: "string"
+                password:
+                  type: "string"
+      responses:
+        "201":
+          description: "Success operation"
+          headers:
+            location:
+              description: "New URL of created user"
+              schema: { type: string, format: url }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/400-BadRequest"
+
+  "/api/users/{userId}":
+    get:
+      summary: "Get user"
+      description: "Get user"
+      tags: ["users"]
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema: { type: integer }
+      responses:
+        "200":
+          description: "Success operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+      security: []
+    post:
+      summary: "edit new user"
+      description: "edit new user"
+      tags: ["users"]
+      parameters:
+      - name: userId
+        in: path
+        description: "User identifier"
+        required: true
+        schema: { type: integer }
+      requestBody:
+        description: "Contents of user"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Users"
+      responses:
+        "201":
+          description: "Success operation"
+          headers:
+            location:
+              description: "New URL of created user"
+              schema: { type: string, format: url }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        "400":
+          $ref: "#/components/responses/400-BadRequest"
+      security:
+      - jwt_auth: []
+
+components:
+  schemas:
+    Kwargs:
+      type: object
+      properties:
+        id: {type: integer}
+        name: {type: string}
+    Users:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: 'test' }
+        jwt: {type: string, example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c}
+    Error:
+      type: object
+      properties:
+        code: { type: string }
+        type: { type: string }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              code: { type: string }
+  responses:
+    400-BadRequest:
+      description: "Client side error"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  securitySchemes:
+    jwt_auth:
+      description: "JWT authorization"
+      type: apiKey
+      in: header
+      name: access_token
